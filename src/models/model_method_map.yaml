@@ -1,0 +1,207 @@
+﻿method_map:
+  stationarity:
+    academic_sources:
+      - DickeyFuller1979
+    packages:
+      - name: stats
+        language: R
+        role: baseline_test_support
+      - name: statsmodels
+        language: Python
+        role: diagnostics_crosscheck
+    research_role: Kiểm định tính dừng trước khi ước lượng mô hình chuỗi thời gian.
+
+  arch_effect:
+    academic_sources:
+      - Engle1982
+    packages:
+      - name: rugarch
+        language: R
+        role: main_diagnostics
+      - name: statsmodels
+        language: Python
+        role: diagnostics_crosscheck
+      - name: arch
+        language: Python
+        role: optional_model_crosscheck
+    research_role: Kiểm tra volatility clustering và ARCH effect trước khi dùng GARCH.
+
+  univariate_garch:
+    academic_sources:
+      - Bollerslev1986
+      - Bollerslev1987
+      - GlostenJagannathanRunkle1993
+      - Nelson1991
+    packages:
+      - name: rugarch
+        language: R
+        role: main_estimation
+      - name: arch
+        language: Python
+        role: optional_crosscheck
+    research_role: Ước lượng volatility đơn biến cho từng tài sản, chọn spec đầu vào cho DCC/ADCC.
+
+  ccc_garch:
+    academic_sources:
+      - Bollerslev1990
+    packages:
+      - name: rugarch
+        language: R
+        role: univariate_conditional_variance_estimation
+      - name: project_custom_ccc
+        language: R
+        role: constant_correlation_benchmark
+    research_role: Benchmark tương quan có điều kiện hằng số trước DCC/ADCC; xây từ GARCH đơn biến và tương quan hằng số của standardized residuals, không gọi rmgarch::dccspec(model = "CCC").
+
+  dcc_adcc_garch:
+    academic_sources:
+      - Engle2002
+      - CappielloEngleSheppard2006
+      - KronerNg1998
+      - BasherSadorsky2016
+    packages:
+      - name: rmgarch
+        language: R
+        role: main_estimation
+    research_role: Ước lượng tương quan động và bất đối xứng để kiểm tra hedge/safe haven.
+
+  hedging_effectiveness:
+    academic_sources:
+      - KronerSultan1993
+      - KronerNg1998
+      - BasherSadorsky2016
+    packages:
+      - name: custom_module
+        language: R
+        role: computed_from_conditional_covariance
+    research_role: Tính hedge ratio động, portfolio weight và variance reduction từ conditional covariance.
+
+  safe_haven_tests:
+    academic_sources:
+      - BaurLucey2010
+      - BasherSadorsky2016
+    packages:
+      - name: custom_module
+        language: R
+        role: regression_and_tail_event_tests
+    research_role: Phân biệt hedge, diversifier và safe haven theo trạng thái căng thẳng của VNIndex.
+
+  tail_risk_delta_covar_style:
+    academic_sources:
+      - BaurLucey2010
+      - BasherSadorsky2016
+    packages:
+      - name: quantreg
+        language: R
+        role: quantile_regression_for_conditional_tail_risk
+      - name: custom_module
+        language: R
+        role: var_es_drawdown_and_tail_risk_reduction
+    research_role: Đo VaR/ES reduction, drawdown reduction và Delta-CoVaR-style conditional tail risk để chuẩn bị cho TRAS; không diễn giải như nhận dạng nhân quả hay rủi ro hệ thống đầy đủ.
+
+  tras_score:
+    academic_sources:
+      - BaurLucey2010
+      - BasherSadorsky2016
+      - ChatziantoniouGabauerStenfors2021
+    packages:
+      - name: custom_module
+        language: R
+        role: rank_based_tail_risk_absorption_score
+    research_role: Tổng hợp HE, VaR/ES reduction, drawdown reduction, connectedness absorption và Delta-CoVaR-style thành điểm TRAS minh bạch bằng normalized ranks, không dùng trọng số chủ quan. TRAS chính chỉ xếp hạng tài sản trú ẩn/phòng hộ có thể đầu tư trong câu chuyện nghiên cứu; Brent được giữ như oil-price shock/risk channel, không đưa vào core safe-haven ranking.
+
+  sector_application:
+    academic_sources:
+      - KronerSultan1993
+      - BaurLucey2010
+      - BasherSadorsky2016
+    packages:
+      - name: custom_module
+        language: R
+        role: application_level_static_hedging_and_ranked_sector_tras
+    research_role: Ứng dụng khung HE, VaR/ES reduction, drawdown reduction và rank-based TRAS cho 10 ngành HOSE/VNAllshare. Đây là application layer dùng static minimum-variance hedge ratio, không thay thế core DCC/aDCC-GARCH.
+
+  adaptive_ml_selection:
+    validation_protocol_v2:
+      config_section: adaptive_ml_validation
+      source_analysis: ML/ml-learning-library/analysis/ML_SPECIALIST_SOURCES_ANALYSIS_vi.md
+      temporal_validation_source: "Gu, Kelly & Xiu (2020), section 1.1, p.2232"
+      block_resampling_source: "Kunsch (1989), section 2.3, p.1220; White (2000), p.1104"
+      dynamic_benchmarks: excluded_until_point_in_time_vintages
+      inference_scope: conditional_pairwise_sensitivity_not_reality_check_or_spa
+      output_entrypoint: src/models/python/05_adaptive_hedge_ml_final.py
+      output_root: results/ml_runs
+    academic_sources:
+      - BaurLucey2010
+      - BasherSadorsky2016
+    packages:
+      - name: custom_numpy_softmax
+        language: Python
+        role: phase3_13_baseline_walk_forward_adaptive_hedge_selection
+      - name: scikit-learn
+        language: Python
+        role: logistic_l2_balanced_random_forest_walk_forward_validation
+      - name: xgboost
+        language: Python
+        role: multiclass_adaptive_hedge_candidate_when_available
+      - name: shap
+        language: Python
+        role: tree_model_explainability_when_available
+      - name: custom_nested_validation
+        language: Python
+        role: phase3_20_nested_walk_forward_confidence_fallback_hac_bootstrap_validation
+      - name: custom_base_r
+        language: R
+        role: paper_ready_visualization
+    research_role: Kiểm tra ngoài mẫu liệu một quy tắc học máy giải thích được có chọn tài sản trú ẩn tốt hơn benchmark tĩnh, equal basket và DCC/aDCC trailing hay không. Phase 3.13 là baseline softmax, Phase 3.18 bổ sung Logistic/RF/XGBoost/SHAP, Phase 3.20 bổ sung nested walk-forward selection, confidence fallback, HAC paired tests, block bootstrap và target robustness. Không dùng random split; Brent chỉ là biến cú sốc dầu, không là hedge candidate; ML là application layer, không phải bằng chứng trực tiếp về safe-haven status.
+
+  final_robustness_synthesis:
+    academic_sources:
+      - BaurLucey2010
+      - BasherSadorsky2016
+    packages:
+      - name: custom_module
+        language: R
+        role: traceability_check_and_manuscript_table_synchronization
+    research_role: Khóa bằng chứng trước manuscript bằng checklist robustness và đồng bộ các bảng paper-ready; không thêm mô hình nặng mới, không diễn giải MCS nếu chưa có common loss function.
+
+  bond_term_structure_channel:
+    academic_sources:
+      - BasherSadorsky2016
+      - DieboldLi2006
+    packages:
+      - name: custom_module
+        language: R
+        role: bond_1y_5y_10y_mechanism_simulated_tri_and_duration_proxy_robustness
+    research_role: Triển khai kênh cấu trúc kỳ hạn trái phiếu 1Y/5Y/10Y để phân biệt short-end policy/liquidity, medium-end và long-end duration channels. Bond TRI 10Y vẫn là tài sản hedge chính; simulated TRI 1Y/5Y và proxy return 1Y/5Y/10Y là lớp robustness/mechanism, không phải official TRI.
+
+  markov_switching_robustness:
+    academic_sources:
+      - Hamilton1989
+    packages:
+      - name: MSGARCH
+        language: R
+        role: robustness_estimation
+      - name: statsmodels
+        language: Python
+        role: optional_markov_regression_check
+    research_role: Kiểm tra độ bền theo regime bình thường/căng thẳng; không phải mô hình chính.
+
+  oil_price_shock:
+    academic_sources:
+      - Kilian2009
+    packages:
+      - name: custom_module
+        language: R
+        role: shock_proxy_construction
+    research_role: Chỉ gọi là oil-price shock nếu dùng Brent/WTI; chỉ gọi structural shock khi có phân rã shock theo Kilian.
+
+  crypto_extension:
+    academic_sources:
+      - BouriEtAl2017
+    packages:
+      - name: rmgarch
+        language: R
+        role: extension_estimation
+    research_role: Kiểm tra BTC/ETH như phần mở rộng, không đặt làm lõi do độ dài mẫu ngắn hơn.
+

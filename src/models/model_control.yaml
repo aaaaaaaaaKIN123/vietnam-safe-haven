@@ -1,0 +1,132 @@
+project:
+  name: gold_bond_crypto_hedging_vietnam
+  language: vi
+  seed: 20260529
+  frequency: daily
+
+data:
+  model_input: data/02_model_input/core/model_panel_daily.csv
+  returns_input: data/02_model_input/core/final_daily_returns.csv
+  date_column: date
+  missing_policy: inner_join
+  sample_start: "2010-01-04"
+  sample_end: "2026-05-27"
+  return_method: log_return
+  return_scale: 100
+
+assets:
+  target: vnindex
+  core_hedges:
+    - sjc_gold
+    - xau_vnd
+    - bond_tri_10y
+  extension_hedges:
+    - btc
+    - eth
+  shock_controls:
+    - brent
+    - wti
+    - policy_rate
+    - interbank_rate
+    - usd_vnd
+    - vix
+
+diagnostics:
+  enabled: true
+  unit_root:
+    enabled: true
+    tests:
+      - adf
+  arch_lm:
+    enabled: true
+    lags: 12
+  residual_tests:
+    enabled: true
+    lags: 12
+
+univariate_garch:
+  enabled: true
+  package: rugarch
+  models:
+    - sGARCH
+    - gjrGARCH
+    - eGARCH
+  arma_order:
+    p: 1
+    q: 0
+  garch_order:
+    p: 1
+    q: 1
+  distributions:
+    - std
+    - sstd
+  selection_criterion: BIC
+
+dcc_adcc:
+  enabled: true
+  package: rmgarch
+  benchmark_models:
+    - CCC
+    - DCC
+  main_model: aDCC
+  distribution: mvt
+  univariate_spec: best_by_bic
+  pair_mode: target_against_each_hedge
+
+hedging:
+  enabled: true
+  hedge_ratio_method: kroner_sultan
+  portfolio_weight: true
+  effectiveness_metric: variance_reduction
+
+safe_haven:
+  enabled: true
+  framework: baur_lucey
+  stress_variable: vnindex
+  stress_quantiles:
+    - 0.10
+    - 0.05
+    - 0.01
+  controls:
+    use_oil_price_shock: true
+    use_monetary_tightening: true
+
+robustness:
+  msgarch:
+    enabled: true
+    package: MSGARCH
+    regimes: 2
+    distribution: std
+  python_arch_crosscheck:
+    enabled: false
+  statsmodels_checks:
+    enabled: true
+    run_var_vecm: false
+    run_markov_regression: true
+
+outputs:
+  save_config_snapshot: true
+  save_conditional_volatility: true
+  save_dynamic_correlation: true
+  save_hedge_ratio: true
+  save_model_objects: false
+  overwrite_existing: true
+  root: results
+  diagnostics_dir: results/diagnostics
+  tables_dir: results/tables
+  figures_dir: results/figures
+  logs_dir: results/model_logs
+
+# JSON flow mapping is valid YAML and can also be read by the ML runtime
+# without adding a PyYAML dependency. These controls apply to new ML runs only.
+adaptive_ml_validation:
+  {
+    "protocol_version": "point_in_time_v2",
+    "stress_quantile": 0.05,
+    "stress_min_history": 252,
+    "label_cutoff": "strictly_before_decision_date",
+    "dynamic_benchmarks": "excluded_until_point_in_time_vintages",
+    "fallbacks": ["model", "static_best", "always_xau_vnd"],
+    "bootstrap_block_windows": [1, 3, 6],
+    "run_output_root": "results/ml_runs"
+  }

@@ -1,0 +1,37 @@
+# Only index this project's source; exclude external libraries and private inputs.
+.git/
+.agents/
+.codex/
+.gemini/
+.cache/
+.venv*/
+ML/
+archive/
+00_proposal/
+01_literature/
+paper/
+results/
+notebooks/
+data/00_raw/
+data/01_processed/
+data/02_model_input/
+data/03_model_output/
+data/_archive_legacy/
+data/metadata/
+src/models/WS time series/
+**/__pycache__/
+**/node_modules/
+**/dist/
+**/build/
+**/.env*
+**/*secret*
+**/*credential*
+**/*.pem
+**/*.key
+**/config.py
+**/*.csv
+**/*.xlsx
+**/*.pdf
+**/*.docx
+**/*.png
+**/*.svg

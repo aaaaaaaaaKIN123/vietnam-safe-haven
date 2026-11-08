@@ -1,0 +1,10 @@
+-r requirements.txt
+# Optional data, diagnostics and manuscript utilities
+statsmodels>=0.14,<0.15
+arch>=7,<9
+openpyxl>=3.1,<4
+python-docx>=1.1,<2
+tabulate>=0.9,<1
+# Optional ML extensions; excluded from the default candidate grid
+xgboost==3.3.0
+shap>=0.49,<1
